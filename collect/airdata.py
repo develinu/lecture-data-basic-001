@@ -12,7 +12,7 @@ def request_airkorea_api(station_name, page_no, data_term="MONTH"):
         f"{os.environ.get('AIRKOREA_API_URL')}/getMsrstnAcctoRltmMesureDnsty?"
         f"serviceKey={os.environ.get('AIRKOREA_API_KEY')}"
         f"&returnType=json"
-        f"&numOfRows=100"
+        f"&numOfRows=1000"
         f"&pageNo={page_no}"
         f"&stationName={station_name}"
         f"&dataTerm={data_term}"
