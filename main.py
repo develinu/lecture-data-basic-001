@@ -15,12 +15,10 @@ from model.af_gru import AirdataForecastGRU
 
 
 def train():
-    criterion = torch.nn.MSELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-
     total_loss = 0.0
     iteration = 0
 
+    model.train()
     for iteration, (item) in enumerate(train_dataloader):
         model.zero_grad()
         prediction = model(item)
@@ -32,8 +30,20 @@ def train():
     return total_loss / (iteration+1)
 
 
+def evaluation():
+    eval_loss_logs = []
+
+    model.eval()
+    with torch.no_grad():
+        for iteration, (item) in enumerate(test_dataloader):
+            prediction = model(item)
+            loss = criterion(prediction, item)
+            eval_loss_logs.append([iteration+1, loss.item()])
+    return eval_loss_logs
+
+
 if __name__ == '__main__':
-    batch_size = 8
+    batch_size = 4
     input_size = 1
     num_classes = 1
     hidden_size = 1
@@ -59,7 +69,7 @@ if __name__ == '__main__':
     else:
         clean_df = pd.read_csv(test_df, header=0)
 
-    train_df, test_df = split_df(clean_df[["pm_10"]], rate=0.2)
+    train_df, test_df = split_df(clean_df[["pm_10"]], rate=0.3)
 
     train_dataset = AirdataDataset(train_df)
     train_dataloader = DataLoader(
@@ -85,19 +95,34 @@ if __name__ == '__main__':
         num_classes=num_classes, input_size=input_size, hidden_size=hidden_size, num_layers=num_layers, seq_len=seq_len
     )
 
-    loss_logs = []
+    criterion = torch.nn.MSELoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+
+    train_loss_logs = []
     for epoch in range(num_epoch):
         loss = train()
 
         if epoch % 50 == 0:
             print(f"[{epoch+1}] avg loss : {loss}")
 
-        loss_logs.append([epoch+1, loss])
+        train_loss_logs.append([epoch+1, loss])
 
-    loss_df = pd.DataFrame(loss_logs, columns=["epoch", "loss"])
-    loss_df = loss_df.set_index(keys="epoch")
+    save_dst = ""
+    torch.save(model, "artifact/af_gru_001.pth")
+
+    # loss_df = pd.DataFrame(loss_logs, columns=["epoch", "loss"])
+    # loss_df = loss_df.set_index(keys="epoch")
+    # loss_df.plot()
+    # plt.title("Train loss(MSE)")
+    # plt.xlabel("Epoch")
+    # plt.ylabel("Loss")
+    # plt.show()
+
+    eval_loss_logs = evaluation()
+    loss_df = pd.DataFrame(eval_loss_logs, columns=["step", "loss"])
+    loss_df = loss_df.set_index(keys="step")
     loss_df.plot()
-    plt.title("Train loss(MSE)")
-    plt.xlabel("Epoch")
+    plt.title("Evaluation loss(MSE)")
+    plt.xlabel("Step")
     plt.ylabel("Loss")
     plt.show()
