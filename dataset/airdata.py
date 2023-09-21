@@ -10,5 +10,5 @@ class AirdataDataset(Dataset):
         return len(self.df)
 
     def __getitem__(self, idx):
-        item = torch.tensor(self.df.iloc[idx, 1], dtype=torch.long)
+        item = torch.tensor(self.df.iloc[idx], dtype=torch.float32)
         return item

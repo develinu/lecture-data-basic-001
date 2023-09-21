@@ -1,6 +1,8 @@
 import re
 import datetime
 
+import pandas as pd
+
 
 def get_hour(dt: str):
     pattern = "\d{4}-\d{2}-\d{2} (\d{2}):\d{2}"
@@ -20,3 +22,10 @@ def safe_cast(val, to_type, default="null"):
         return to_type(val)
     except (ValueError, TypeError):
         return default
+
+
+def split_df(df: pd.DataFrame, rate=0.2):
+    split_index = int(len(df) * (1 - rate))
+    df1 = df.iloc[:split_index]
+    df2 = df.iloc[split_index:]
+    return df1, df2
