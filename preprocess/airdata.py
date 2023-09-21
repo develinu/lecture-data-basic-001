@@ -34,4 +34,3 @@ def preprocessing_for_model_ver2(df: pd.DataFrame):
     df["event_time"] = df["event_time"].apply(lambda x: x.strftime("%Y-%m-%d"))
     agg_df = df.groupby(by="event_time").agg({"pm_10": "mean"}).reset_index()
     return agg_df
-
