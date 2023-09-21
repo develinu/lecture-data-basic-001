@@ -12,7 +12,7 @@ def request_airkorea_api(station_name, page_no, data_term="MONTH"):
         f"{os.environ.get('AIRKOREA_API_URL')}/getMsrstnAcctoRltmMesureDnsty?"
         f"serviceKey={os.environ.get('AIRKOREA_API_KEY')}"
         f"&returnType=json"
-        f"&numOfRows=1000"
+        f"&numOfRows=10000"
         f"&pageNo={page_no}"
         f"&stationName={station_name}"
         f"&dataTerm={data_term}"
@@ -23,6 +23,7 @@ def request_airkorea_api(station_name, page_no, data_term="MONTH"):
 def parse_airdata(content):
     result = []
     airdata = json.loads(content)["response"]["body"]["items"]
+    print(f"airdata length : {len(airdata)}")
     for data in airdata:
         temp_dt = data["dataTime"]
         hour = get_hour(temp_dt)
