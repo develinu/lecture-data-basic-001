@@ -1,6 +1,8 @@
 import os
 
+import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 from dotenv import load_dotenv
 import torch
 from torch.utils.data import DataLoader
@@ -27,13 +29,6 @@ def train():
         loss.backward()
         optimizer.step()
 
-        if iteration == 9:
-            print(f"item : {item}")
-            print(f"prediction : {prediction}")
-            print(f"loss : {loss}")
-
-    print(total_loss, iteration)
-
     return total_loss / (iteration+1)
 
 
@@ -45,10 +40,14 @@ if __name__ == '__main__':
     num_layers = 1
     seq_len = 1
     learning_rate = 0.001
-    num_epoch = 3000
+    num_epoch = 1000
+    seed = 2023
 
     load_dotenv()
     device = "cuda" if torch.cuda.is_available() else "cpu"
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
 
     test_df = "tests/data/clean_df.csv"
     if not os.path.exists(test_df):
@@ -86,6 +85,19 @@ if __name__ == '__main__':
         num_classes=num_classes, input_size=input_size, hidden_size=hidden_size, num_layers=num_layers, seq_len=seq_len
     )
 
+    loss_logs = []
     for epoch in range(num_epoch):
         loss = train()
-        print(f"[{epoch+1}] avg loss : {loss}")
+
+        if epoch % 50 == 0:
+            print(f"[{epoch+1}] avg loss : {loss}")
+
+        loss_logs.append([epoch+1, loss])
+
+    loss_df = pd.DataFrame(loss_logs, columns=["epoch", "loss"])
+    loss_df = loss_df.set_index(keys="epoch")
+    loss_df.plot()
+    plt.title("Train loss(MSE)")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.show()
